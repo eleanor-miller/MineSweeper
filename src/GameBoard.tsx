@@ -1,29 +1,47 @@
 import React from 'react'
-import './App'
+import App from './App'
 import { Cell, CellRow, CellGrid, GameState } from './GameState'
 
-export function GameBoard(game: GameState) {
-  function handleClickCell(row: number, column: number) {
-    console.log(`You clicked on row ${row} and column ${column}`)
+export function GameBoard(props: any) {
+  async function handleLeftClickCell(row: number, column: number, cell: Cell) {
+    if (cell == 'F') return
+    props.leftClickFunction(row, column)
+  }
+
+  async function handleRightClickCell(
+    event: MouseEvent,
+    row: number,
+    column: number
+  ) {
+    event.preventDefault()
+    props.rightClickFunction(row, column)
   }
 
   return (
     <>
       <ul>
-        {game.board?.map((boardRow, rowIndex) => {
-          console.log(
-            `The rowIndex is ${rowIndex} and the boardRow is ${boardRow}`
-          )
-          return boardRow.map((cell, columnIndex) => {
-            console.log(
-              `-- With the inside loop the columnIndex is ${columnIndex} and the cell is ${cell}`
-            )
+        {props.board?.map((boardRow: CellRow, rowIndex: number) => {
+          return boardRow.map((cell: Cell, columnIndex: number) => {
             return (
               <li
+                className={
+                  (cell == '_' || cell == 'F' ? 'taken' : '') +
+                  ' ' +
+                  (cell == 'F' ? 'not-allowed-click' : '') +
+                  ' ' +
+                  (cell != ' ' && cell != 'F' ? 'revealed' : '')
+                }
                 key={columnIndex}
-                onClick={() => handleClickCell(rowIndex, columnIndex)}
+                onClick={() => handleLeftClickCell(rowIndex, columnIndex, cell)} //How to pass the cell contents ???
+                onContextMenu={(event) =>
+                  handleRightClickCell(
+                    event as unknown as MouseEvent,
+                    rowIndex,
+                    columnIndex
+                  )
+                }
               >
-                {cell}
+                {cell == '_' ? ' ' : cell}
               </li>
             )
           })

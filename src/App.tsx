@@ -2,8 +2,10 @@ import React from 'react'
 import { useState } from 'react'
 import { GameBoard } from './GameBoard'
 import { Cell, CellRow, CellGrid, GameState } from './GameState'
+import './GameService'
+import { checkCell, createNewGame, flagCell } from './GameService'
 
-function App() {
+const App = () => {
   const [gamestate, setGameState] = useState<GameState>({
     id: null,
     board: null,
@@ -12,28 +14,37 @@ function App() {
   })
 
   async function handleNewGame() {
-    const response = await fetch(
-      'https://minesweeper-api.herokuapp.com/games',
-      {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          difficulty: 0,
-        }),
-      }
-    )
-    if (response.ok) {
-      const json = (await response.json()) as GameState
-      console.log(json)
-      setGameState(json)
-    }
+    let json = await createNewGame()
+    setGameState(json as GameState)
+  }
+
+  async function handleLeftClick(row: number, column: number) {
+    let json = await checkCell(row, column, gamestate)
+    setGameState(json as GameState)
+  }
+
+  async function handleRightClick(row: number, column: number) {
+    let json = await flagCell(row, column, gamestate)
+    setGameState(json as GameState)
   }
 
   return (
     <div className="App">
-      <button onClick={handleNewGame}>New Game</button>
-      {/* <GameBoard props={gamestate} /> */}
-      <div>{gamestate.id}</div>
+      <div>
+        <h1>Welcome to Minesweeper!</h1>
+        <h2>Game Status: {gamestate.state}</h2>
+        <button onClick={handleNewGame}>New Game</button>
+        <div className="App">
+          <GameBoard
+            id={gamestate.id}
+            board={gamestate.board}
+            state={gamestate.state}
+            mines={gamestate.mines}
+            leftClickFunction={handleLeftClick}
+            rightClickFunction={handleRightClick}
+          />
+        </div>
+      </div>
     </div>
   )
 }
